@@ -1149,7 +1149,7 @@ function insertImageBlock(dataURL, naturalW, naturalH) {
 }
 
 /* =========================================================
-   사진 자르기(크롭) 오버레이 — 이동 + 크기 슬라이더 (비율은 항상 고정)
+   사진 자르기(크롭) 오버레이 — 아이폰 갤러리 스타일 자유 크롭
    ========================================================= */
 let cropTargetBlock = null;
 let cropNaturalW = 0;
@@ -1158,8 +1158,15 @@ let cropImgLeft = 0;
 let cropImgTop = 0;
 let cropImgW = 0;
 let cropImgH = 0;
-let cropFixedAspect = 1; // 자르기 박스의 가로/세로 비율 (블록의 현재 박스 비율로 고정)
+let cropAspectMode = "free"; // "free" | "1:1" | "original"
 let cropBoxRect = { x1: 0, y1: 0, x2: 0, y2: 0 }; // 스테이지 좌표계(px), 절대값
+let cropStageRect = null; // 드래그 중 캐시해두는 스테이지의 화면상 위치 (성능 최적화)
+
+function getCropAspectRatio() {
+    if (cropAspectMode === "1:1") return 1;
+    if (cropAspectMode === "original") return cropNaturalW / cropNaturalH || 1;
+    return null;
+}
 
 function clampNum(v, min, max) {
     return Math.min(max, Math.max(min, v));
@@ -1251,22 +1258,26 @@ function getCropBoxPercent() {
     return { x, y, w: wPct, h: hPct };
 }
 
-// 고정 비율(cropFixedAspect)을 유지하면서 이미지 안에 들어가는 최대 박스 크기
-function getMaxCropBoxSize() {
-    let w = cropImgW;
-    let h = w / cropFixedAspect;
-    if (h > cropImgH) {
-        h = cropImgH;
-        w = h * cropFixedAspect;
-    }
-    return { w, h };
-}
+function setCropAspectUI(mode) {
+    cropAspectMode = mode;
+    document.querySelectorAll("#cropAspectGroup button").forEach((b) => {
+        b.classList.toggle("active", b.getAttribute("data-aspect") === mode);
+    });
+    const aspect = getCropAspectRatio();
+    if (!aspect) return;
 
-// 중심점을 유지한 채 새 너비/높이로 박스 크기를 바꾸고, 이미지 경계를 벗어나면 밀어서 안쪽으로 맞춤
-function setCropBoxSizeKeepingCenter(newW, newH) {
     const bounds = { left: cropImgLeft, top: cropImgTop, right: cropImgLeft + cropImgW, bottom: cropImgTop + cropImgH };
     const centerX = (cropBoxRect.x1 + cropBoxRect.x2) / 2;
     const centerY = (cropBoxRect.y1 + cropBoxRect.y2) / 2;
+    const curH = Math.abs(cropBoxRect.y2 - cropBoxRect.y1);
+
+    let newW = Math.min(cropImgW, curH * aspect);
+    let newH = newW / aspect;
+    if (newH > cropImgH) {
+        newH = cropImgH;
+        newW = newH * aspect;
+    }
+
     let x1 = centerX - newW / 2;
     let x2 = centerX + newW / 2;
     let y1 = centerY - newH / 2;
@@ -1281,27 +1292,14 @@ function setCropBoxSizeKeepingCenter(newW, newH) {
     renderCropBox();
 }
 
-function applyCropSizeSlider(percentValue) {
-    const maxSize = getMaxCropBoxSize();
-    const newW = Math.max(20, maxSize.w * (percentValue / 100));
-    const newH = newW / cropFixedAspect;
-    setCropBoxSizeKeepingCenter(newW, newH);
-}
-
 function openCropTool(block) {
     const overlay = document.getElementById("cropOverlay");
     const stageImg = document.getElementById("cropStageImg");
-    const sizeRange = document.getElementById("cropSizeRange");
     if (!overlay || !stageImg) return;
     cropTargetBlock = block;
     const originalSrc = block.dataset.originalSrc || block.querySelector("img").src;
 
-    cropFixedAspect = (block.offsetWidth && block.offsetHeight)
-        ? block.offsetWidth / block.offsetHeight
-        : parseFloat(block.dataset.naturalRatio) || 1;
-
     overlay.style.display = "flex";
-    document.body.classList.add("crop-open");
 
     stageImg.onload = () => {
         cropNaturalW = stageImg.naturalWidth;
@@ -1315,11 +1313,7 @@ function openCropTool(block) {
         }
         if (!rectPct || typeof rectPct.w !== "number") rectPct = { x: 0, y: 0, w: 100, h: 100 };
         setCropBoxFromPercent(rectPct);
-
-        const maxSize = getMaxCropBoxSize();
-        const curW = Math.abs(cropBoxRect.x2 - cropBoxRect.x1);
-        const sliderVal = Math.round(clampNum((curW / maxSize.w) * 100, 20, 100));
-        if (sizeRange) sizeRange.value = sliderVal;
+        setCropAspectUI(block.dataset.cropAspect || "free");
     };
     stageImg.src = originalSrc;
 }
@@ -1327,7 +1321,6 @@ function openCropTool(block) {
 function closeCropTool() {
     const overlay = document.getElementById("cropOverlay");
     if (overlay) overlay.style.display = "none";
-    document.body.classList.remove("crop-open");
     cropTargetBlock = null;
 }
 
@@ -1359,6 +1352,7 @@ function applyCropTool() {
         if (img) img.src = croppedDataURL;
         block.dataset.naturalRatio = (sw / sh).toFixed(6);
         block.dataset.cropRect = JSON.stringify(rectPct);
+        block.dataset.cropAspect = cropAspectMode;
 
         // 박스 비율을 잘라낸 이미지 비율과 항상 일치시킴 (너비 유지, 높이만 재계산)
         const curW = parseInt(block.style.width, 10) || block.offsetWidth || 240;
@@ -1378,16 +1372,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const cropBox = document.getElementById("cropBox");
     const btnCropCancel = document.getElementById("btnCropCancel");
     const btnCropApply = document.getElementById("btnCropApply");
-    const cropSizeRange = document.getElementById("cropSizeRange");
 
     if (btnCropCancel) btnCropCancel.addEventListener("click", closeCropTool);
     if (btnCropApply) btnCropApply.addEventListener("click", applyCropTool);
 
-    if (cropSizeRange) {
-        cropSizeRange.addEventListener("input", () => {
-            applyCropSizeSlider(parseFloat(cropSizeRange.value) || 100);
+    document.querySelectorAll("#cropAspectGroup button").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            setCropAspectUI(btn.getAttribute("data-aspect"));
         });
-    }
+    });
 
     window.addEventListener("resize", () => {
         const overlay = document.getElementById("cropOverlay");
@@ -1397,14 +1390,17 @@ document.addEventListener("DOMContentLoaded", () => {
         setCropBoxFromPercent(prevPct);
     });
 
-    // ---- 크롭 박스는 드래그로 "이동"만 가능 (크기는 슬라이더 전용, 비율 고정) ----
     if (cropBox) {
+        const minSize = 32;
+
+        // ---- 크롭 박스 이동 ----
         let moving = false;
         let moveStartX = 0;
         let moveStartY = 0;
         let startRect = null;
 
         cropBox.addEventListener("pointerdown", (e) => {
+            if (e.target.closest(".crop-handle")) return;
             e.preventDefault();
             moving = true;
             try { cropBox.setPointerCapture(e.pointerId); } catch (err) {}
@@ -1421,8 +1417,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const w = Math.abs(startRect.x2 - startRect.x1);
             const h = Math.abs(startRect.y2 - startRect.y1);
             const bounds = { left: cropImgLeft, top: cropImgTop, right: cropImgLeft + cropImgW, bottom: cropImgTop + cropImgH };
-            const newLeft = clampNum(Math.min(startRect.x1, startRect.x2) + dx, bounds.left, bounds.right - w);
-            const newTop = clampNum(Math.min(startRect.y1, startRect.y2) + dy, bounds.top, bounds.bottom - h);
+            let newLeft = clampNum(Math.min(startRect.x1, startRect.x2) + dx, bounds.left, bounds.right - w);
+            let newTop = clampNum(Math.min(startRect.y1, startRect.y2) + dy, bounds.top, bounds.bottom - h);
             cropBoxRect = { x1: newLeft, y1: newTop, x2: newLeft + w, y2: newTop + h };
             renderCropBox();
         });
@@ -1434,6 +1430,73 @@ document.addEventListener("DOMContentLoaded", () => {
         };
         cropBox.addEventListener("pointerup", endMove);
         cropBox.addEventListener("pointercancel", endMove);
+
+        // ---- 모서리 손잡이 = 크롭 영역 크기 조절 ----
+        cropBox.querySelectorAll(".crop-handle").forEach((handle) => {
+            const key = handle.getAttribute("data-handle");
+            let resizing = false;
+
+            handle.addEventListener("pointerdown", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                resizing = true;
+                // 성능 최적화: 드래그 시작 시 한 번만 stage 위치를 읽어 캐시(매 move마다 reflow 유발하는
+                // getBoundingClientRect 호출을 없애 랙을 방지)
+                const stage = document.getElementById("cropStage");
+                cropStageRect = stage.getBoundingClientRect();
+                try { handle.setPointerCapture(e.pointerId); } catch (err) {}
+            });
+
+            handle.addEventListener("pointermove", (e) => {
+                if (!resizing || !cropStageRect) return;
+                e.preventDefault();
+                const px = e.clientX - cropStageRect.left;
+                const py = e.clientY - cropStageRect.top;
+                const bounds = { left: cropImgLeft, top: cropImgTop, right: cropImgLeft + cropImgW, bottom: cropImgTop + cropImgH };
+                const aspect = getCropAspectRatio();
+
+                let anchorX, anchorY;
+                if (key === "tl") { anchorX = cropBoxRect.x2; anchorY = cropBoxRect.y2; }
+                if (key === "tr") { anchorX = cropBoxRect.x1; anchorY = cropBoxRect.y2; }
+                if (key === "bl") { anchorX = cropBoxRect.x2; anchorY = cropBoxRect.y1; }
+                if (key === "br") { anchorX = cropBoxRect.x1; anchorY = cropBoxRect.y1; }
+
+                const movesLeft = key === "tl" || key === "bl";
+                const movesTop = key === "tl" || key === "tr";
+
+                if (!aspect) {
+                    let x1 = movesLeft ? clampNum(px, bounds.left, anchorX - minSize) : anchorX;
+                    let x2 = movesLeft ? anchorX : clampNum(px, anchorX + minSize, bounds.right);
+                    let y1 = movesTop ? clampNum(py, bounds.top, anchorY - minSize) : anchorY;
+                    let y2 = movesTop ? anchorY : clampNum(py, anchorY + minSize, bounds.bottom);
+                    cropBoxRect = { x1, y1, x2, y2 };
+                } else {
+                    const maxWFromBoundsX = movesLeft ? anchorX - bounds.left : bounds.right - anchorX;
+                    const maxHFromBoundsY = movesTop ? anchorY - bounds.top : bounds.bottom - anchorY;
+                    const maxWFromH = maxHFromBoundsY * aspect;
+                    const effectiveMaxW = Math.max(minSize, Math.min(maxWFromBoundsX, maxWFromH));
+                    const desiredW = Math.abs(px - anchorX);
+                    const newW = clampNum(desiredW, minSize, effectiveMaxW);
+                    const newH = newW / aspect;
+
+                    let x1 = movesLeft ? anchorX - newW : anchorX;
+                    let x2 = movesLeft ? anchorX : anchorX + newW;
+                    let y1 = movesTop ? anchorY - newH : anchorY;
+                    let y2 = movesTop ? anchorY : anchorY + newH;
+                    cropBoxRect = { x1, y1, x2, y2 };
+                }
+                renderCropBox();
+            });
+
+            const endResize = (e) => {
+                if (!resizing) return;
+                resizing = false;
+                cropStageRect = null;
+                try { handle.releasePointerCapture(e.pointerId); } catch (err) {}
+            };
+            handle.addEventListener("pointerup", endResize);
+            handle.addEventListener("pointercancel", endResize);
+        });
     }
 });
 
@@ -1508,6 +1571,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const img = block.querySelector("img");
             if (img) img.src = originalSrc;
             block.dataset.cropRect = JSON.stringify({ x: 0, y: 0, w: 100, h: 100 });
+            block.dataset.cropAspect = "free";
             const tempImg = new Image();
             tempImg.onload = () => {
                 block.dataset.naturalRatio = (tempImg.naturalWidth / tempImg.naturalHeight).toFixed(6);

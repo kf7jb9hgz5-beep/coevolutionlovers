@@ -582,11 +582,18 @@
                     <div class="crop-grid-line crop-grid-v2"></div>
                     <div class="crop-grid-line crop-grid-h1"></div>
                     <div class="crop-grid-line crop-grid-h2"></div>
+                    <div class="crop-handle crop-handle-tl" data-handle="tl"></div>
+                    <div class="crop-handle crop-handle-tr" data-handle="tr"></div>
+                    <div class="crop-handle crop-handle-bl" data-handle="bl"></div>
+                    <div class="crop-handle crop-handle-br" data-handle="br"></div>
                 </div>
             </div>
             <div class="crop-overlay-footer">
-                <label for="cropSizeRange" class="crop-size-label">크기</label>
-                <input type="range" id="cropSizeRange" min="20" max="100" value="80" />
+                <div class="segmented-control" id="cropAspectGroup">
+                    <button type="button" data-aspect="free" class="active">자유</button>
+                    <button type="button" data-aspect="1:1">정사각형</button>
+                    <button type="button" data-aspect="original">원본</button>
+                </div>
             </div>
         </div>
 
