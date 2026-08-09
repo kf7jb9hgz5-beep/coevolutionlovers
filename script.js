@@ -986,6 +986,21 @@ function normalizeParagraphs(container) {
    ======================================================================== */
 
 let currentImageBlock = null;
+// "사진" 버튼을 누른 "그 순간"의 커서 위치를 저장해둔다.
+// 파일 선택창(사진 앱 등)이 열리면 에디터가 포커스를 잃어서 브라우저가
+// 커서 위치(선택영역)를 지워버리는 경우가 많다. 그래서 사진을 실제로
+// 고른 뒤 삽입하는 시점에는 원래 커서 위치를 이미 알 수 없게 되어,
+// 항상 맨 끝에 삽입되는 것처럼 보였다. 버튼을 누르는 즉시(=아직 포커스가
+// 살아있는 시점) 커서 위치를 미리 저장해두고, 나중에 그 위치에 삽입한다.
+let savedInsertRange = null;
+
+function getCurrentEditorRange() {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount && els.editor.contains(selection.anchorNode)) {
+        return selection.getRangeAt(0).cloneRange();
+    }
+    return null;
+}
 
 function applyImageAlign(block, align) {
     block.dataset.align = align;
@@ -1144,13 +1159,19 @@ function insertImageBlock(dataURL, naturalW, naturalH) {
     attachImageBlockInteractions(block);
 
     const selection = window.getSelection();
-    let range;
-    if (selection && selection.rangeCount && editor.contains(selection.anchorNode)) {
-        range = selection.getRangeAt(0);
-    } else {
-        range = document.createRange();
-        range.selectNodeContents(editor);
-        range.collapse(false);
+    let range = savedInsertRange;
+    savedInsertRange = null;
+
+    // 저장해둔 커서 위치가 여전히 에디터 내부에 유효하면 그 자리에 삽입.
+    // 그렇지 않을 때만(저장된 게 없거나 에디터 밖) 지금 선택 상태나 맨 끝을 사용.
+    if (!range || !editor.contains(range.startContainer)) {
+        if (selection && selection.rangeCount && editor.contains(selection.anchorNode)) {
+            range = selection.getRangeAt(0);
+        } else {
+            range = document.createRange();
+            range.selectNodeContents(editor);
+            range.collapse(false);
+        }
     }
     range.deleteContents();
     range.insertNode(block);
@@ -1356,16 +1377,46 @@ function applyCropTool() {
 
     const srcImg = new Image();
     srcImg.onload = () => {
-        const sx = Math.round((rectPct.x / 100) * srcImg.naturalWidth);
-        const sy = Math.round((rectPct.y / 100) * srcImg.naturalHeight);
-        const sw = Math.max(1, Math.round((rectPct.w / 100) * srcImg.naturalWidth));
-        const sh = Math.max(1, Math.round((rectPct.h / 100) * srcImg.naturalHeight));
+        const natW = srcImg.naturalWidth;
+        const natH = srcImg.naturalHeight;
+        if (!natW || !natH) {
+            alert("이미지를 불러오지 못해 자르기를 적용하지 못했어요. 다시 시도해주세요.");
+            closeCropTool();
+            return;
+        }
+
+        // 소스 이미지의 실제 범위를 절대 벗어나지 않도록 확실히 고정한다.
+        // 범위를 살짝이라도 벗어나면 일부 브라우저(특히 모바일)에서
+        // drawImage가 아무것도 그리지 않고 캔버스를 투명한 채로 남기는데,
+        // 그 상태로 JPEG로 저장하면 투명 영역이 검게 칠해져서
+        // 사진이 통째로 새까맣게 나오는 문제가 있었다.
+        let sx = clampNum(Math.round((rectPct.x / 100) * natW), 0, natW - 1);
+        let sy = clampNum(Math.round((rectPct.y / 100) * natH), 0, natH - 1);
+        let sw = clampNum(Math.round((rectPct.w / 100) * natW), 1, natW - sx);
+        let sh = clampNum(Math.round((rectPct.h / 100) * natH), 1, natH - sy);
+
+        if (sw < 2 || sh < 2) {
+            alert("자르기 영역이 올바르지 않아 적용하지 못했어요. 영역을 다시 잡고 시도해주세요.");
+            closeCropTool();
+            return;
+        }
 
         const canvas = document.createElement("canvas");
         canvas.width = sw;
         canvas.height = sh;
         const ctx = canvas.getContext("2d");
-        ctx.drawImage(srcImg, sx, sy, sw, sh, 0, 0, sw, sh);
+        // 투명 영역이 JPEG로 저장될 때 검은색으로 채워지는 것을 막기 위해
+        // 항상 흰 배경을 먼저 깔아둔다 (그림이 제대로 그려지면 안 보임).
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, sw, sh);
+
+        try {
+            ctx.drawImage(srcImg, sx, sy, sw, sh, 0, 0, sw, sh);
+        } catch (err) {
+            alert("이미지를 자르는 중 오류가 발생했어요. 다시 시도해주세요.");
+            closeCropTool();
+            return;
+        }
 
         let mime = "image/jpeg";
         const mimeMatch = /^data:([^;]+);/.exec(originalSrc);
@@ -1387,6 +1438,10 @@ function applyCropTool() {
         if (sizeInput) sizeInput.value = curW;
 
         updateCanvas();
+        closeCropTool();
+    };
+    srcImg.onerror = () => {
+        alert("이미지를 불러오지 못해 자르기를 적용하지 못했어요. 다시 시도해주세요.");
         closeCropTool();
     };
     srcImg.src = originalSrc;
@@ -1527,6 +1582,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (btnInsertImage && imageInsertInput) {
         btnInsertImage.addEventListener("click", () => {
+            // 파일 선택창이 열리기 전, 지금 이 순간의 커서 위치를 저장
+            savedInsertRange = getCurrentEditorRange();
             imageInsertInput.value = "";
             imageInsertInput.click();
         });
