@@ -65,8 +65,37 @@ function getAvailableHeaderWidth(fallback) {
     return inner > 0 ? inner : fallback;
 }
 
+// 편집창(#textEditor)의 글꼴/크기/자간/줄간격을 실제 캔버스(미리보기)와
+// 최대한 똑같이 맞춰서, 편집창에서 보이는 줄바꿈이 실제 결과물과 일치하게 만든다.
+// (이게 안 맞으면 "이 글자 옆에 사진" 하고 넣어도 실제로는 다른 위치에 들어감)
+//
+// 단, 아이폰 사파리는 입력창의 실제(글꼴) 크기가 16px보다 작으면 탭할 때
+// 화면을 확대해버리는 문제가 있어서, 폰트 크기는 16px 밑으로 절대 내리지 않는다.
+// (캔버스 글자 크기를 16px보다 작게 설정한 경우에는 편집창은 16px로 보여서
+//  아주 살짝 차이가 날 수 있지만, 실무에서 그렇게 작게 쓰는 경우는 드물다)
+function syncEditorTypography() {
+    const editor = els.editor;
+    if (!editor || !els.fontSelect) return;
+
+    const IOS_ZOOM_SAFE_MIN = 16;
+    const desiredSize = parseFloat(els.fontSize.value) || 16;
+    const desiredLineHeight = parseFloat(els.lineHeight.value) || Math.round(desiredSize * 1.6);
+    const desiredLetterSpacing = parseFloat(els.letterSpacing.value) || 0;
+    const realSize = Math.max(IOS_ZOOM_SAFE_MIN, desiredSize);
+
+    editor.style.fontFamily = els.fontSelect.value;
+    editor.style.fontSize = `${realSize}px`;
+    // 폰트 크기를 16px로 올려야 했던 만큼 줄간격/자간도 같은 비율로 늘려서
+    // (편집창 안에서의) 상대적인 느낌이 캔버스와 비슷하게 유지되도록 함
+    const ratio = realSize / desiredSize;
+    editor.style.lineHeight = `${desiredLineHeight * ratio}px`;
+    editor.style.letterSpacing = `${desiredLetterSpacing * ratio}px`;
+}
+
 function updateCanvas() {
     if (!els.captureArea) return;
+
+    syncEditorTypography();
 
     const ratio = els.ratioSelect.value;
     els.captureArea.style.width = "";
@@ -773,6 +802,19 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // 제목/글자크기 등을 빠르게 여러 번 건드릴 때(타이핑, 슬라이더 드래그)
+    // updateCanvas()가 매 입력마다 동기적으로 강제 레이아웃을 발생시켜서
+    // 캔버스가 순간적으로 흔들리거나 깨져 보이는 것처럼 느껴지는 문제가 있었다.
+    // 짧은 시간 안에 여러 번 호출되면 화면이 그려지기 직전(rAF) 한 번으로 묶는다.
+    let _updateCanvasRAF = null;
+    function scheduleUpdateCanvas() {
+        if (_updateCanvasRAF) return;
+        _updateCanvasRAF = requestAnimationFrame(() => {
+            _updateCanvasRAF = null;
+            updateCanvas();
+        });
+    }
+
     const autoTriggers = [
         els.titleInput, els.creatorInput, els.canvasWidth, els.paddingY, els.paddingX,
         els.bgType, els.bgColor1, els.gradColor1, els.gradColor2, els.gradColor3, els.gradientDir,
@@ -786,7 +828,7 @@ document.addEventListener("DOMContentLoaded", () => {
         els.headingSubtitleFont, els.headingSubtitleSize, els.headingSubtitleBold
     ];
     autoTriggers.forEach((el) => {
-        if (el) { el.addEventListener("input", updateCanvas); el.addEventListener("change", updateCanvas); }
+        if (el) { el.addEventListener("input", scheduleUpdateCanvas); el.addEventListener("change", scheduleUpdateCanvas); }
     });
 
     // 최초 렌더링. 페이지가 열리자마자 한 번 그리고,
