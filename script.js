@@ -49,6 +49,22 @@ const els = {
     headingSubtitleBold: document.getElementById("headingSubtitleBold")
 };
 
+// 캔버스 미리보기 영역(헤더)의 "내용 영역" 너비를 정확히 구한다.
+// header.clientWidth 에는 header 자신의 좌우 padding이 포함돼 있어서,
+// 그 값을 그대로 "사용 가능한 너비"로 쓰면 실제보다 넓게 계산되어
+// 타이핑/이미지 삽입 등으로 updateCanvas()가 반복 호출될 때마다
+// 캔버스가 화면 폭을 살짝 넘었다 안 넘었다 하며 스케일(=캔버스와 글자 비율)이
+// 미세하게 흔들리는 원인이 된다. 반드시 padding을 뺀 "content box" 너비를 사용한다.
+function getAvailableHeaderWidth(fallback) {
+    const headerEl = document.querySelector(".canvas-header");
+    if (!headerEl) return fallback;
+    const cs = getComputedStyle(headerEl);
+    const paddingL = parseFloat(cs.paddingLeft) || 0;
+    const paddingR = parseFloat(cs.paddingRight) || 0;
+    const inner = headerEl.clientWidth - paddingL - paddingR;
+    return inner > 0 ? inner : fallback;
+}
+
 function updateCanvas() {
     if (!els.captureArea) return;
 
@@ -57,8 +73,6 @@ function updateCanvas() {
     els.captureArea.style.height = "";
     els.captureArea.style.aspectRatio = "";
     els.captureArea.style.maxWidth = "none";
-
-    const headerEl = document.querySelector(".canvas-header");
 
     if (ratio === "free") {
         const customW = parseFloat(els.canvasWidth.value) || 520;
@@ -74,7 +88,7 @@ function updateCanvas() {
     } else {
         const [wStr, hStr] = ratio.split(":");
         const w = parseInt(wStr), h = parseInt(hStr);
-        const targetWidth = Math.min(420, (headerEl && headerEl.clientWidth) || 420);
+        const targetWidth = Math.min(420, getAvailableHeaderWidth(420));
         const targetHeight = Math.round((targetWidth * h) / w);
         els.captureArea.style.width = `${targetWidth}px`;
         els.captureArea.style.maxWidth = `${targetWidth}px`;
@@ -255,7 +269,6 @@ function updateCanvas() {
 
 function applyPreviewScale() {
     const wrapper = document.getElementById("captureAreaScaleWrapper");
-    const headerEl = document.querySelector(".canvas-header");
     if (!wrapper || !els.captureArea) return;
 
     if (els.ratioSelect.value !== "free") {
@@ -270,7 +283,7 @@ function applyPreviewScale() {
     els.captureArea.style.transform = "none";
     const naturalW = els.captureArea.offsetWidth;
     const naturalH = els.captureArea.scrollHeight;
-    const availableW = (headerEl ? headerEl.clientWidth : naturalW) || naturalW;
+    const availableW = getAvailableHeaderWidth(naturalW) || naturalW;
     const scale = naturalW > 0 ? Math.min(1, availableW / naturalW) : 1;
 
     els.captureArea.style.transformOrigin = "0 0";
@@ -977,14 +990,26 @@ let currentImageBlock = null;
 function applyImageAlign(block, align) {
     block.dataset.align = align;
     if (align === "left") {
+        // 사진을 좌측에 띄우고 글자가 사진 오른쪽으로 자유롭게 흐르게 함
+        block.style.float = "left";
         block.style.marginLeft = "0";
-        block.style.marginRight = "auto";
+        block.style.marginRight = "14px";
+        block.style.marginTop = "2px";
+        block.style.marginBottom = "8px";
     } else if (align === "right") {
-        block.style.marginLeft = "auto";
+        // 사진을 우측에 띄우고 글자가 사진 왼쪽으로 자유롭게 흐르게 함
+        block.style.float = "right";
+        block.style.marginLeft = "14px";
         block.style.marginRight = "0";
+        block.style.marginTop = "2px";
+        block.style.marginBottom = "8px";
     } else {
+        // 가운데: 사진이 자기 줄을 독립적으로 차지 (기존 방식)
+        block.style.float = "none";
         block.style.marginLeft = "auto";
         block.style.marginRight = "auto";
+        block.style.marginTop = "10px";
+        block.style.marginBottom = "10px";
     }
 }
 
@@ -1526,9 +1551,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     els.editor.addEventListener("click", (e) => {
+        // 크기 조절 핸들 클릭/드래그는 선택 토글과 무관하게 별도로 처리됨
+        if (e.target.closest(".image-resize-handle")) return;
+
         const block = e.target.closest(".editor-image-block");
         if (block && els.editor.contains(block)) {
-            selectImageBlock(block);
+            if (currentImageBlock === block) {
+                // 선택된 사진을 한 번 더 누르면 선택 해제
+                deselectImageBlock();
+            } else {
+                selectImageBlock(block);
+            }
         } else {
             deselectImageBlock();
         }

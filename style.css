@@ -193,6 +193,11 @@ body.mobile-theme {
     padding: 0;
     width: 100%;
     min-height: 100vh;
+    /* 캔버스 지정 너비가 화면보다 커질 때 페이지 전체가 옆으로 밀리면
+       JS가 측정하는 헤더 너비 자체가 흔들려서 캔버스/글자 비율이
+       계속 바뀌는 것처럼 보이는 문제가 있었음. 가로 스크롤을 막아
+       측정 기준을 고정시킴 */
+    overflow-x: hidden;
     background-color: var(--bg-main);
     font-family:
         "Pretendard",
@@ -213,6 +218,8 @@ body.mobile-theme {
 .canvas-header {
     position: static;
     width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden; /* 캔버스가 잠깐이라도 화면보다 넓어져도 헤더 폭 측정이 흔들리지 않도록 */
     background-color: var(--bg-main);
     padding: 14px 16px 12px;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
@@ -521,10 +528,12 @@ body.mobile-theme {
 .editor-image-block {
     position: relative;
     overflow: hidden;
-    margin-top: 10px;
-    margin-bottom: 10px;
     max-width: 100%;
     line-height: 0;
+    /* 좌/중/우 정렬에 따른 float 및 margin은 JS(applyImageAlign)가
+       인라인 style로 직접 지정한다. 여기 기본값은 그 전까지의 fallback. */
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .editor-image-block img {
