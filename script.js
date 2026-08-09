@@ -789,7 +789,25 @@ document.addEventListener("DOMContentLoaded", () => {
         if (el) { el.addEventListener("input", updateCanvas); el.addEventListener("change", updateCanvas); }
     });
 
-    setTimeout(() => updateCanvas(), 50);
+    // 최초 렌더링. 페이지가 열리자마자 한 번 그리고,
+    updateCanvas();
+
+    // ⚠️ 핵심 버그 수정: 구글 폰트/커스텀 폰트(woff2)는 네트워크로 늦게 로드되는데,
+    // 폰트가 다 로드되기 "전"에 measure된 글자 폭으로 줄바꿈이 정해지면
+    // 나중에 폰트가 실제로 적용될 때 글자 너비가 바뀌면서 줄바꿈 위치가
+    // 달라져 버린다(=1번처럼 나와야 할 게 2번처럼 흐트러짐).
+    // 이전에는 이걸 "50ms 뒤에 한 번 더 그리기"로 땜질했는데, 폰트 로딩이
+    // 그보다 오래 걸리는 네트워크(특히 최초 접속/캐시 없는 경우)에서는
+    // 여전히 늦게 도착한 폰트가 반영이 안 됐다.
+    // → 모든 폰트가 실제로 로드 완료된 시점(document.fonts.ready)에
+    //   반드시 한 번 더 다시 그리도록 고쳐서, 폰트 로딩 속도와 무관하게
+    //   항상 최종 폰트 기준으로 줄바꿈/비율이 계산되게 함.
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(() => updateCanvas()).catch(() => {});
+    }
+    // 혹시 모를 브라우저 호환성/예외 상황을 위한 이중 안전망
+    setTimeout(() => updateCanvas(), 300);
+    setTimeout(() => updateCanvas(), 1200);
 });
 
 document.getElementById("btnCopy").addEventListener("click", () => {
@@ -986,21 +1004,6 @@ function normalizeParagraphs(container) {
    ======================================================================== */
 
 let currentImageBlock = null;
-// "사진" 버튼을 누른 "그 순간"의 커서 위치를 저장해둔다.
-// 파일 선택창(사진 앱 등)이 열리면 에디터가 포커스를 잃어서 브라우저가
-// 커서 위치(선택영역)를 지워버리는 경우가 많다. 그래서 사진을 실제로
-// 고른 뒤 삽입하는 시점에는 원래 커서 위치를 이미 알 수 없게 되어,
-// 항상 맨 끝에 삽입되는 것처럼 보였다. 버튼을 누르는 즉시(=아직 포커스가
-// 살아있는 시점) 커서 위치를 미리 저장해두고, 나중에 그 위치에 삽입한다.
-let savedInsertRange = null;
-
-function getCurrentEditorRange() {
-    const selection = window.getSelection();
-    if (selection && selection.rangeCount && els.editor.contains(selection.anchorNode)) {
-        return selection.getRangeAt(0).cloneRange();
-    }
-    return null;
-}
 
 function applyImageAlign(block, align) {
     block.dataset.align = align;
@@ -1159,19 +1162,13 @@ function insertImageBlock(dataURL, naturalW, naturalH) {
     attachImageBlockInteractions(block);
 
     const selection = window.getSelection();
-    let range = savedInsertRange;
-    savedInsertRange = null;
-
-    // 저장해둔 커서 위치가 여전히 에디터 내부에 유효하면 그 자리에 삽입.
-    // 그렇지 않을 때만(저장된 게 없거나 에디터 밖) 지금 선택 상태나 맨 끝을 사용.
-    if (!range || !editor.contains(range.startContainer)) {
-        if (selection && selection.rangeCount && editor.contains(selection.anchorNode)) {
-            range = selection.getRangeAt(0);
-        } else {
-            range = document.createRange();
-            range.selectNodeContents(editor);
-            range.collapse(false);
-        }
+    let range;
+    if (selection && selection.rangeCount && editor.contains(selection.anchorNode)) {
+        range = selection.getRangeAt(0);
+    } else {
+        range = document.createRange();
+        range.selectNodeContents(editor);
+        range.collapse(false);
     }
     range.deleteContents();
     range.insertNode(block);
@@ -1582,8 +1579,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (btnInsertImage && imageInsertInput) {
         btnInsertImage.addEventListener("click", () => {
-            // 파일 선택창이 열리기 전, 지금 이 순간의 커서 위치를 저장
-            savedInsertRange = getCurrentEditorRange();
             imageInsertInput.value = "";
             imageInsertInput.click();
         });
