@@ -553,7 +553,12 @@ body.mobile-theme {
 }
 
 #textEditor .editor-image-block.selected img {
-    cursor: default;
+    cursor: grab;
+    touch-action: none;
+}
+
+#textEditor .editor-image-block.selected img:active {
+    cursor: grabbing;
 }
 
 .image-resize-handle {
@@ -1303,8 +1308,8 @@ input[type="file"]::file-selector-button {
 
 .crop-handle {
     position: absolute;
-    width: 26px;
-    height: 26px;
+    width: 30px;
+    height: 30px;
     touch-action: none;
     z-index: 5;
 }
@@ -1312,6 +1317,9 @@ input[type="file"]::file-selector-button {
 .crop-handle::before {
     content: "";
     position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     width: 18px;
     height: 18px;
     background-color: #ffffff;
@@ -1319,10 +1327,10 @@ input[type="file"]::file-selector-button {
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
-.crop-handle-tl { top: -13px; left: -13px; cursor: nwse-resize; }
-.crop-handle-tr { top: -13px; right: -13px; cursor: nesw-resize; }
-.crop-handle-bl { bottom: -13px; left: -13px; cursor: nesw-resize; }
-.crop-handle-br { bottom: -13px; right: -13px; cursor: nwse-resize; }
+.crop-handle-tl { top: -15px; left: -15px; cursor: nwse-resize; }
+.crop-handle-tr { top: -15px; right: -15px; cursor: nesw-resize; }
+.crop-handle-bl { bottom: -15px; left: -15px; cursor: nesw-resize; }
+.crop-handle-br { bottom: -15px; right: -15px; cursor: nwse-resize; }
 
 .crop-overlay-footer {
     flex: 0 0 auto;

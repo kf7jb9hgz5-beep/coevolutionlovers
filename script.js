@@ -1149,7 +1149,7 @@ function insertImageBlock(dataURL, naturalW, naturalH) {
 }
 
 /* =========================================================
-   사진 자르기(크롭) 오버레이 — 아이폰 갤러리 스타일 자유 크롭
+   사진 자르기(크롭) 오버레이 — 모서리 드래그로 자유롭게 영역 선택
    ========================================================= */
 let cropTargetBlock = null;
 let cropNaturalW = 0;
@@ -1160,7 +1160,6 @@ let cropImgW = 0;
 let cropImgH = 0;
 let cropAspectMode = "free"; // "free" | "1:1" | "original"
 let cropBoxRect = { x1: 0, y1: 0, x2: 0, y2: 0 }; // 스테이지 좌표계(px), 절대값
-let cropStageRect = null; // 드래그 중 캐시해두는 스테이지의 화면상 위치 (성능 최적화)
 
 function getCropAspectRatio() {
     if (cropAspectMode === "1:1") return 1;
@@ -1417,8 +1416,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const w = Math.abs(startRect.x2 - startRect.x1);
             const h = Math.abs(startRect.y2 - startRect.y1);
             const bounds = { left: cropImgLeft, top: cropImgTop, right: cropImgLeft + cropImgW, bottom: cropImgTop + cropImgH };
-            let newLeft = clampNum(Math.min(startRect.x1, startRect.x2) + dx, bounds.left, bounds.right - w);
-            let newTop = clampNum(Math.min(startRect.y1, startRect.y2) + dy, bounds.top, bounds.bottom - h);
+            const newLeft = clampNum(Math.min(startRect.x1, startRect.x2) + dx, bounds.left, bounds.right - w);
+            const newTop = clampNum(Math.min(startRect.y1, startRect.y2) + dy, bounds.top, bounds.bottom - h);
             cropBoxRect = { x1: newLeft, y1: newTop, x2: newLeft + w, y2: newTop + h };
             renderCropBox();
         });
@@ -1440,18 +1439,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 e.preventDefault();
                 e.stopPropagation();
                 resizing = true;
-                // 성능 최적화: 드래그 시작 시 한 번만 stage 위치를 읽어 캐시(매 move마다 reflow 유발하는
-                // getBoundingClientRect 호출을 없애 랙을 방지)
-                const stage = document.getElementById("cropStage");
-                cropStageRect = stage.getBoundingClientRect();
                 try { handle.setPointerCapture(e.pointerId); } catch (err) {}
             });
 
             handle.addEventListener("pointermove", (e) => {
-                if (!resizing || !cropStageRect) return;
+                if (!resizing) return;
                 e.preventDefault();
-                const px = e.clientX - cropStageRect.left;
-                const py = e.clientY - cropStageRect.top;
+                const stage = document.getElementById("cropStage");
+                const rect = stage.getBoundingClientRect();
+                const px = e.clientX - rect.left;
+                const py = e.clientY - rect.top;
                 const bounds = { left: cropImgLeft, top: cropImgTop, right: cropImgLeft + cropImgW, bottom: cropImgTop + cropImgH };
                 const aspect = getCropAspectRatio();
 
@@ -1491,7 +1488,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const endResize = (e) => {
                 if (!resizing) return;
                 resizing = false;
-                cropStageRect = null;
                 try { handle.releasePointerCapture(e.pointerId); } catch (err) {}
             };
             handle.addEventListener("pointerup", endResize);
@@ -1499,7 +1495,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
-
 
 document.addEventListener("DOMContentLoaded", () => {
     const btnInsertImage = document.getElementById("btnInsertImage");
@@ -1571,7 +1566,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const img = block.querySelector("img");
             if (img) img.src = originalSrc;
             block.dataset.cropRect = JSON.stringify({ x: 0, y: 0, w: 100, h: 100 });
-            block.dataset.cropAspect = "free";
             const tempImg = new Image();
             tempImg.onload = () => {
                 block.dataset.naturalRatio = (tempImg.naturalWidth / tempImg.naturalHeight).toFixed(6);
