@@ -65,9 +65,18 @@ function getAvailableHeaderWidth(fallback) {
     return inner > 0 ? inner : fallback;
 }
 
-// 편집창(#textEditor)의 글꼴/크기/자간/줄간격을 실제 캔버스(미리보기)와
-// 최대한 똑같이 맞춰서, 편집창에서 보이는 줄바꿈이 실제 결과물과 일치하게 만든다.
+// 편집창(#textEditor)의 글꼴/크기/자간/줄간격 "그리고 실제 폭"까지
+// 캔버스(미리보기)와 최대한 똑같이 맞춰서, 편집창에서 보이는 줄바꿈이
+// 실제 결과물과 일치하게 만든다.
 // (이게 안 맞으면 "이 글자 옆에 사진" 하고 넣어도 실제로는 다른 위치에 들어감)
+//
+// 글꼴 크기/자간/줄간격만 맞추는 걸로는 부족했던 이유: 캔버스는 "너비"가
+// 폰(예: 520px)이나 4:5 비율 등으로 정해져 있는데, 편집창은 그냥 화면
+// 가로폭에 맞춰 늘어나 있어서 한 줄에 들어가는 글자 수 자체가 달랐다.
+// → 편집창의 실제 폭을 캔버스의 "내용 폭"(캔버스 너비 - 좌우 여백*2)과
+//   정확히 똑같은 px 값으로 맞춘다. 캔버스가 화면보다 넓게 설정된 경우엔
+//   편집창도 그만큼 넓어지고, 대신 좌우로 스크롤해서 볼 수 있게 한다
+//   (억지로 화면에 우겨넣어 축소하면 그 순간 다시 줄바꿈이 달라지기 때문).
 //
 // 단, 아이폰 사파리는 입력창의 실제(글꼴) 크기가 16px보다 작으면 탭할 때
 // 화면을 확대해버리는 문제가 있어서, 폰트 크기는 16px 밑으로 절대 내리지 않는다.
@@ -87,9 +96,38 @@ function syncEditorTypography() {
     editor.style.fontSize = `${realSize}px`;
     // 폰트 크기를 16px로 올려야 했던 만큼 줄간격/자간도 같은 비율로 늘려서
     // (편집창 안에서의) 상대적인 느낌이 캔버스와 비슷하게 유지되도록 함
-    const ratio = realSize / desiredSize;
-    editor.style.lineHeight = `${desiredLineHeight * ratio}px`;
-    editor.style.letterSpacing = `${desiredLetterSpacing * ratio}px`;
+    const sizeRatio = realSize / desiredSize;
+    editor.style.lineHeight = `${desiredLineHeight * sizeRatio}px`;
+    editor.style.letterSpacing = `${desiredLetterSpacing * sizeRatio}px`;
+
+    // 줄바꿈 규칙 자체가 다르면 폭이 같아도 줄바꿈 위치가 달라질 수 있음
+    if (els.wordBreak) editor.style.wordBreak = els.wordBreak.value;
+    editor.style.whiteSpace = "pre-wrap";
+
+    // --- 여기서부터 "폭"을 캔버스 내용 폭과 정확히 동일하게 맞춘다 ---
+    const ratioMode = els.ratioSelect ? els.ratioSelect.value : "free";
+    const paddingX = parseFloat(els.paddingX?.value) || 0;
+    let canvasContentWidth;
+    if (ratioMode === "free") {
+        const customW = parseFloat(els.canvasWidth?.value) || 520;
+        canvasContentWidth = customW - paddingX * 2;
+    } else {
+        const targetWidth = Math.min(420, getAvailableHeaderWidth(420));
+        canvasContentWidth = targetWidth - paddingX * 2;
+    }
+    canvasContentWidth = Math.max(60, Math.round(canvasContentWidth));
+
+    // 편집창 자체에는 캔버스에는 없는 자기만의 좌우 padding(14px씩)이 있다.
+    // canvasTextWrapper 쪽 실제 텍스트 폭(=canvasContentWidth)과 편집창 안의
+    // "글자가 실제로 채워지는 폭"을 똑같이 맞추려면, 편집창의 padding만큼
+    // 바깥 너비를 더 늘려줘야 안쪽 텍스트 영역 폭이 정확히 일치한다.
+    const editorCS = getComputedStyle(editor);
+    const editorPaddingX = (parseFloat(editorCS.paddingLeft) || 0) + (parseFloat(editorCS.paddingRight) || 0);
+    const editorBorderX = (parseFloat(editorCS.borderLeftWidth) || 0) + (parseFloat(editorCS.borderRightWidth) || 0);
+
+    editor.style.width = `${canvasContentWidth + editorPaddingX + editorBorderX}px`;
+    editor.style.maxWidth = "none";
+    editor.style.flexShrink = "0";
 }
 
 function updateCanvas() {
@@ -1174,21 +1212,25 @@ function insertImageBlock(dataURL, naturalW, naturalH) {
     editor.focus();
 
     const editorWidth = editor.clientWidth || 300;
-    const maxW = Math.min(editorWidth - 4, 320);
-    let w = naturalW ? Math.min(maxW, naturalW) : maxW;
+    // 기본으로 "글 옆에 사진"이 바로 보이도록, 전체 폭이 아니라
+    // 편집창 폭의 절반 정도 + 좌측 정렬(float)을 기본값으로 삽입한다.
+    // (그동안은 기본이 거의 전체 폭 + 가운데 정렬이라, 사진이 항상
+    //  자기 혼자 한 줄을 차지해서 "옆으로 흐르는" 모습이 아예 안 보였음)
+    const defaultSideWidth = Math.round(Math.min(editorWidth - 4, Math.max(140, editorWidth * 0.46)));
+    let w = naturalW ? Math.min(defaultSideWidth, naturalW) : defaultSideWidth;
     let h = naturalW && naturalH ? Math.round((w * naturalH) / naturalW) : w;
 
     const block = document.createElement("div");
     block.className = "editor-image-block";
     block.setAttribute("contenteditable", "false");
-    block.dataset.align = "center";
+    block.dataset.align = "left";
     block.dataset.naturalRatio = naturalW && naturalH ? (naturalW / naturalH).toFixed(6) : "1";
     block.style.width = `${w}px`;
     block.style.height = `${h}px`;
     block.style.borderRadius = "0px";
     block.dataset.originalSrc = dataURL;
     block.dataset.cropRect = JSON.stringify({ x: 0, y: 0, w: 100, h: 100 });
-    applyImageAlign(block, "center");
+    applyImageAlign(block, "left");
 
     const img = document.createElement("img");
     img.src = dataURL;
@@ -1502,11 +1544,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     window.addEventListener("resize", () => {
         const overlay = document.getElementById("cropOverlay");
-        if (!overlay || overlay.style.display === "none") return;
-        const prevPct = getCropBoxPercent();
-        layoutCropImage();
-        setCropBoxFromPercent(prevPct);
+        if (overlay && overlay.style.display !== "none") {
+            const prevPct = getCropBoxPercent();
+            layoutCropImage();
+            setCropBoxFromPercent(prevPct);
+        }
+        // 화면 회전, 키보드 표시/숨김 등으로 실제 사용 가능한 폭이 바뀔 때마다
+        // 캔버스/편집창 폭 계산을 다시 맞춰서, 오래된 값 그대로 남아
+        // 글자가 잘리거나 비율이 어긋나 보이는 것을 방지
+        updateCanvas();
     });
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", () => updateCanvas());
+    }
 
     if (cropBox) {
         const minSize = 32;

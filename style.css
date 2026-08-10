@@ -512,6 +512,18 @@ body.mobile-theme {
     background-color: #ffffff;
     transition: var(--transition-base);
     -webkit-user-select: text;
+    box-sizing: border-box;
+}
+
+/* 캔버스 너비가 화면보다 넓게 설정된 경우, 편집창도 캔버스와 똑같은 폭을
+   유지해야 줄바꿈이 정확히 일치한다(JS가 #textEditor에 정확한 px 폭을 지정함).
+   그 폭이 화면보다 넓어지면, 페이지 전체가 밀리지 않도록 이 래퍼만
+   가로 스크롤 되게 한다. */
+.editor-scroll-x {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
 }
 
 #textEditor:focus {
@@ -1209,6 +1221,15 @@ input[type="file"]::file-selector-button {
 #canvasTextWrapper span:not([style*="background-color"]) {
     position: relative;
     z-index: 2;
+}
+
+/* 사진(.editor-image-block)은 항상 문단 글자보다 위에 그려지도록 고정.
+   위의 "#canvasTextWrapper *" 규칙 때문에 사진도 z-index:1을 받는데,
+   그 뒤에 이어지는 문단 span이 z-index:2를 받아 사진 "위"를 덮어버려서
+   글 옆(좌/우 정렬)에 띄운 사진이 미리보기에서 안 보이는 문제가 있었음. */
+#textEditor .editor-image-block,
+#canvasTextWrapper .editor-image-block {
+    z-index: 3;
 }
 
 /* ---- 사진 자르기(크롭) 오버레이 ---- */
