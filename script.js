@@ -128,6 +128,28 @@ function syncEditorTypography() {
     editor.style.width = `${canvasContentWidth + editorPaddingX + editorBorderX}px`;
     editor.style.maxWidth = "none";
     editor.style.flexShrink = "0";
+
+    // --- 옆으로 드래그하지 않고도 화면 안에서 한 번에 보이도록,
+    //     캔버스 폭에 맞춰 커진 편집창을 화면 폭에 맞게 "통째로" 축소해서 보여준다.
+    //     (글자 하나하나를 억지로 줄이는 게 아니라, 사진처럼 전체를 그대로 축소하는 것이라
+    //      실제 줄바꿈 위치/비율은 캔버스와 동일하게 유지됨) ---
+    const scrollWrapper = document.getElementById("editorScrollX");
+    if (scrollWrapper) {
+        editor.style.transform = "none";
+        editor.style.transformOrigin = "top left";
+        const realW = editor.offsetWidth;
+        const realH = editor.offsetHeight;
+        const availableW = scrollWrapper.clientWidth || realW;
+        const fitScale = realW > 0 ? Math.min(1, availableW / realW) : 1;
+
+        if (fitScale < 1) {
+            editor.style.transform = `scale(${fitScale})`;
+            scrollWrapper.style.height = `${Math.ceil(realH * fitScale)}px`;
+        } else {
+            editor.style.transform = "none";
+            scrollWrapper.style.height = "";
+        }
+    }
 }
 
 function updateCanvas() {

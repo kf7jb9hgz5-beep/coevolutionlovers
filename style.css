@@ -510,7 +510,7 @@ body.mobile-theme {
     color: var(--text-main);
     outline: none;
     background-color: #ffffff;
-    transition: var(--transition-base);
+    transition: border-color 0.2s ease; /* transform/width는 타이핑마다 계속 바뀌므로 애니메이션 제외 */
     -webkit-user-select: text;
     box-sizing: border-box;
 }
@@ -521,8 +521,7 @@ body.mobile-theme {
    가로 스크롤 되게 한다. */
 .editor-scroll-x {
     width: 100%;
-    overflow-x: auto;
-    overflow-y: visible;
+    overflow: hidden; /* 옆으로 드래그하는 대신, 아래 JS가 화면 폭에 맞게 축소해서 보여줌 */
     -webkit-overflow-scrolling: touch;
 }
 
