@@ -82,6 +82,30 @@
             font-style: normal;
             font-display: swap;
         }
+
+        @font-face {
+            font-family: "DeltaDotumKR";
+            src: url("./fonts/DeltaDotumKR.woff2") format("woff2");
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: "DeltaGlassKR";
+            src: url("./fonts/DeltaGlassKR.woff2") format("woff2");
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: "DreamHeumulKR";
+            src: url("./fonts/DreamHeumulKR.woff2") format("woff2");
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
     `;
 
     document.head.appendChild(fontStyle);
