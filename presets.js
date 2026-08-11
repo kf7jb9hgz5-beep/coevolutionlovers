@@ -1,3 +1,93 @@
+// ==================== 폰트 추가 ====================
+(function () {
+    const fontStyle = document.createElement("style");
+
+    fontStyle.textContent = `
+        @font-face {
+            font-family: "Pretendard";
+            src: url("./fonts/Pretendard.woff2") format("woff2");
+            font-weight: 100 900;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: "MaruBuri";
+            src: url("./fonts/MaruBuri.woff2") format("woff2");
+            font-weight: 400 700;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: "KoPubWorldDotum";
+            src: url("./fonts/KoPubWorldDotum.woff2") format("woff2");
+            font-weight: 400 700;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: "ChosunIlboMyungjo";
+            src: url("./fonts/ChosunIlboMyungjo.woff2") format("woff2");
+            font-weight: 400 700;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: "Ridibatang";
+            src: url("./fonts/Ridibatang.woff2") format("woff2");
+            font-weight: 400 700;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: "OnulSusa60";
+            src: url("./fonts/OnulSusa60.woff2") format("woff2");
+            font-weight: 400 700;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: "OnulDamso";
+            src: url("./fonts/OnulDamso.woff2") format("woff2");
+            font-weight: 400 700;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: "OnulSamhwagothic";
+            src: url("./fonts/OnulSamhwagothic.woff2") format("woff2");
+            font-weight: 400 700;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: "OnulDanjo";
+            src: url("./fonts/OnulDanjo.woff2") format("woff2");
+            font-weight: 400 700;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: "OnulHwagang";
+            src: url("./fonts/OnulHwagang.woff2") format("woff2");
+            font-weight: 400 700;
+            font-style: normal;
+            font-display: swap;
+        }
+    `;
+
+    document.head.appendChild(fontStyle);
+})();
+
+
 // 캔버스/스타일 컨트롤의 숫자 +/- 버튼
 window.stepInput = function (id, step, precision) {
     const input = document.getElementById(id);
