@@ -132,6 +132,7 @@
     font-weight: normal;
     font-display: swap;
 }
+
 /* ===========================
     오늘 폰트
 =========================== */
@@ -181,10 +182,39 @@
 }
 
 @font-face {
-    font-family: 'OnulHwagang';
-    src: url('./Fonts/OnulHwagang-Regular.woff2') format('woff2');
+    font-family: "OnulHwagang";
+    src: url("./Fonts/OnulHwagang-Regular.woff2") format("woff2");
     font-weight: normal;
     font-style: normal;
+    font-display: swap;
+}
+
+/* ===========================
+    추가 폰트
+=========================== */
+
+@font-face {
+    font-family: "DeltaDotumKR";
+    src: url("./Fonts/DeltaDotumKR.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "DeltaGlassKR";
+    src: url("./Fonts/DeltaGlassKR.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "DreamHeumulKR";
+    src: url("./Fonts/DreamHeumulKR.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
 }
 
 html,
@@ -193,10 +223,6 @@ body.mobile-theme {
     padding: 0;
     width: 100%;
     min-height: 100vh;
-    /* 캔버스 지정 너비가 화면보다 커질 때 페이지 전체가 옆으로 밀리면
-       JS가 측정하는 헤더 너비 자체가 흔들려서 캔버스/글자 비율이
-       계속 바뀌는 것처럼 보이는 문제가 있었음. 가로 스크롤을 막아
-       측정 기준을 고정시킴 */
     overflow-x: hidden;
     background-color: var(--bg-main);
     font-family:
@@ -219,7 +245,7 @@ body.mobile-theme {
     position: static;
     width: 100%;
     box-sizing: border-box;
-    overflow-x: hidden; /* 캔버스가 잠깐이라도 화면보다 넓어져도 헤더 폭 측정이 흔들리지 않도록 */
+    overflow-x: hidden;
     background-color: var(--bg-main);
     padding: 14px 16px 12px;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
@@ -242,7 +268,7 @@ body.mobile-theme {
     flex-direction: column;
     box-sizing: border-box;
     width: 100%;
-    max-width: 420px; /* JS가 매 렌더링마다 실제 값을 지정하며 이 값을 덮어씀 (초기 로드 전 기본값) */
+    max-width: 420px;
     margin: 0 auto;
     flex-shrink: 0;
 }
@@ -291,7 +317,7 @@ body.mobile-theme {
 #canvasTextWrapper {
     width: 100%;
     word-wrap: break-word;
-    margin-bottom: 1.5em !important; /* 발췌문과 하단 정보 라인 사이 한 줄 공백 */
+    margin-bottom: 1.5em !important;
 }
 
 .heading-area {
@@ -360,7 +386,6 @@ body.mobile-theme {
     line-height: 1;
 }
 
-/* 기호 및 구분자 스타일/크기/색상 완전 통일 */
 .info-divider,
 .info-symbol {
     display: inline-flex;
@@ -428,6 +453,7 @@ body.mobile-theme {
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
 }
+
 .editor-toolbar.pill-group::-webkit-scrollbar {
     display: none;
 }
@@ -505,23 +531,19 @@ body.mobile-theme {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     padding: 14px;
-    font-size: 16px; /* iOS 자동 확대 방지 */
+    font-size: 16px;
     line-height: 1.6;
     color: var(--text-main);
     outline: none;
     background-color: #ffffff;
-    transition: border-color 0.2s ease; /* transform/width는 타이핑마다 계속 바뀌므로 애니메이션 제외 */
+    transition: border-color 0.2s ease;
     -webkit-user-select: text;
     box-sizing: border-box;
 }
 
-/* 캔버스 너비가 화면보다 넓게 설정된 경우, 편집창도 캔버스와 똑같은 폭을
-   유지해야 줄바꿈이 정확히 일치한다(JS가 #textEditor에 정확한 px 폭을 지정함).
-   그 폭이 화면보다 넓어지면, 페이지 전체가 밀리지 않도록 이 래퍼만
-   가로 스크롤 되게 한다. */
 .editor-scroll-x {
     width: 100%;
-    overflow: hidden; /* 옆으로 드래그하는 대신, 아래 JS가 화면 폭에 맞게 축소해서 보여줌 */
+    overflow: hidden;
     -webkit-overflow-scrolling: touch;
 }
 
@@ -541,8 +563,6 @@ body.mobile-theme {
     overflow: hidden;
     max-width: 100%;
     line-height: 0;
-    /* 좌/중/우 정렬에 따른 float 및 margin은 JS(applyImageAlign)가
-       인라인 style로 직접 지정한다. 여기 기본값은 그 전까지의 fallback. */
     margin-top: 10px;
     margin-bottom: 10px;
 }
@@ -748,6 +768,7 @@ body.mobile-theme {
     gap: 10px;
     border-bottom: 1px solid rgba(241, 245, 249, 0.6);
 }
+
 .control-minimal-row:last-child {
     border-bottom: none;
 }
@@ -1185,7 +1206,6 @@ input[type="file"]::file-selector-button {
     color: #ffffff;
 }
 
-/* 태블릿 정도로 넓어지면 가운데로 정렬해서 너무 늘어지지 않게 */
 @media (min-width: 560px) {
     .bottom-tab-bar {
         max-width: 480px;
@@ -1222,10 +1242,6 @@ input[type="file"]::file-selector-button {
     z-index: 2;
 }
 
-/* 사진(.editor-image-block)은 항상 문단 글자보다 위에 그려지도록 고정.
-   위의 "#canvasTextWrapper *" 규칙 때문에 사진도 z-index:1을 받는데,
-   그 뒤에 이어지는 문단 span이 z-index:2를 받아 사진 "위"를 덮어버려서
-   글 옆(좌/우 정렬)에 띄운 사진이 미리보기에서 안 보이는 문제가 있었음. */
 #textEditor .editor-image-block,
 #canvasTextWrapper .editor-image-block {
     z-index: 3;
@@ -1323,8 +1339,14 @@ input[type="file"]::file-selector-button {
     bottom: 0;
     width: 1px;
 }
-.crop-grid-v1 { left: 33.333%; }
-.crop-grid-v2 { left: 66.666%; }
+
+.crop-grid-v1 {
+    left: 33.333%;
+}
+
+.crop-grid-v2 {
+    left: 66.666%;
+}
 
 .crop-grid-h1,
 .crop-grid-h2 {
@@ -1332,8 +1354,14 @@ input[type="file"]::file-selector-button {
     right: 0;
     height: 1px;
 }
-.crop-grid-h1 { top: 33.333%; }
-.crop-grid-h2 { top: 66.666%; }
+
+.crop-grid-h1 {
+    top: 33.333%;
+}
+
+.crop-grid-h2 {
+    top: 66.666%;
+}
 
 .crop-handle {
     position: absolute;
@@ -1356,10 +1384,29 @@ input[type="file"]::file-selector-button {
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
-.crop-handle-tl { top: -15px; left: -15px; cursor: nwse-resize; }
-.crop-handle-tr { top: -15px; right: -15px; cursor: nesw-resize; }
-.crop-handle-bl { bottom: -15px; left: -15px; cursor: nesw-resize; }
-.crop-handle-br { bottom: -15px; right: -15px; cursor: nwse-resize; }
+.crop-handle-tl {
+    top: -15px;
+    left: -15px;
+    cursor: nwse-resize;
+}
+
+.crop-handle-tr {
+    top: -15px;
+    right: -15px;
+    cursor: nesw-resize;
+}
+
+.crop-handle-bl {
+    bottom: -15px;
+    left: -15px;
+    cursor: nesw-resize;
+}
+
+.crop-handle-br {
+    bottom: -15px;
+    right: -15px;
+    cursor: nwse-resize;
+}
 
 .crop-overlay-footer {
     flex: 0 0 auto;
