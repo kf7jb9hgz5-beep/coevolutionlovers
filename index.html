@@ -64,7 +64,7 @@ header{display:flex;justify-content:space-between;align-items:flex-start;gap:20p
 
 /* ---------- 패널 (채식필사본 이니셜 박스) ---------- */
 .panel{position:relative;background:#fff;border:1px solid #cfcfcf;padding:16px 16px 18px;margin-bottom:22px;box-shadow:0 0 0 4px var(--paper),0 0 0 5px #e3e3e3}
-.ptitle{display:flex;align-items:center;gap:12px;margin:0 0 16px}
+.ptitle{display:flex;align-items:flex-end;gap:12px;margin:0 0 16px}
 .initial{
   flex:none;width:68px;height:76px;display:grid;place-items:center;position:relative;
   font-family:var(--black);font-size:66px;line-height:1;color:var(--ink);
@@ -79,8 +79,8 @@ header{display:flex;justify-content:space-between;align-items:flex-start;gap:20p
 .initial i{position:absolute;z-index:2;font-style:normal;font-family:var(--sans);font-size:11px;color:#555;line-height:1}
 .initial i:nth-of-type(1){top:7px;left:8px}
 .initial i:nth-of-type(2){bottom:7px;right:8px}
-.word{font-family:var(--cond);font-size:34px;line-height:1;letter-spacing:0;min-width:0}
-.word small{display:block;font-family:var(--sans);font-size:12px;letter-spacing:-.01em;color:var(--grey);margin-top:6px;font-weight:500}
+.word{font-family:var(--cond);font-size:34px;line-height:1;letter-spacing:0;min-width:0;margin-bottom:-1px}
+.word small{display:block;font-family:var(--sans);font-size:12px;letter-spacing:-.01em;color:var(--grey);margin-top:6px;font-weight:500;line-height:1}
 
 /* ---------- 컨트롤 ---------- */
 .row{display:flex;align-items:center;gap:10px;margin:10px 0;flex-wrap:wrap}
@@ -113,7 +113,12 @@ select{font:inherit;font-size:13px;font-weight:600;border:1px solid #999;backgro
   background-image:linear-gradient(45deg,transparent 50%,#000 50%),linear-gradient(135deg,#000 50%,transparent 50%);
   background-position:calc(100% - 13px) 50%,calc(100% - 8px) 50%;background-size:5px 5px;background-repeat:no-repeat;flex:1;min-width:140px}
 
-input[type=range]{flex:1;accent-color:#000;min-width:120px}
+input[type=range]{flex:1;min-width:120px;-webkit-appearance:none;appearance:none;height:26px;background:transparent;margin:0;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:1px;background:#111}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:24px;margin-top:-12px;border:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='24' viewBox='0 0 16 24'%3E%3Cpath d='M6.5 1h3v5.5H15v3H9.5V23h-3V9.5H1v-3h5.5z' fill='%23111' stroke='%23fff' stroke-width='1.2' paint-order='stroke'/%3E%3C/svg%3E") center/contain no-repeat}
+input[type=range]::-moz-range-track{height:1px;background:#111}
+input[type=range]::-moz-range-thumb{width:16px;height:24px;border:0;border-radius:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='24' viewBox='0 0 16 24'%3E%3Cpath d='M6.5 1h3v5.5H15v3H9.5V23h-3V9.5H1v-3h5.5z' fill='%23111' stroke='%23fff' stroke-width='1.2' paint-order='stroke'/%3E%3C/svg%3E") center/contain no-repeat}
+input[type=range]:focus-visible{outline:1px dashed #999;outline-offset:2px}
 .val{font-variant-numeric:tabular-nums;font-size:12px;width:38px;text-align:right;color:#444}
 
 .check{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;cursor:pointer;user-select:none}
@@ -123,7 +128,22 @@ input[type=range]{flex:1;accent-color:#000;min-width:120px}
 
 .colorbox{display:flex;align-items:center;gap:8px;flex:1}
 .cpick{position:relative;width:46px;height:34px;border:1px solid #999;flex:none}
-.cpick input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
+.cpick{padding:0;cursor:pointer}
+.cpick input{position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:none;border:0;padding:0}
+.cpick[aria-expanded=true]{outline:1px solid #111;outline-offset:2px}
+/* ---------- 색상 선택기 ---------- */
+.picker{position:absolute;z-index:40;width:240px;background:#fff;border:1px solid #999;padding:12px;box-shadow:0 0 0 4px var(--paper),0 0 0 5px #e3e3e3}
+.picker[hidden]{display:none}
+.sv{position:relative;height:150px;touch-action:none;cursor:crosshair;
+  background:linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,transparent),var(--hue,#f00)}
+.hue{position:relative;height:16px;margin-top:12px;touch-action:none;cursor:ew-resize;
+  background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)}
+.sv .knob{position:absolute;width:14px;height:14px;margin:-7px 0 0 -7px;border:1px solid #fff;outline:1px solid #111;pointer-events:none}
+.hue .knob{position:absolute;top:-4px;bottom:-4px;width:6px;margin-left:-3px;background:#fff;border:1px solid #111;pointer-events:none}
+.pickfoot{display:flex;align-items:center;gap:8px;margin-top:12px}
+.pickfoot .prev{width:28px;height:28px;border:1px solid #999;flex:none}
+.pickfoot .hex{flex:1;width:auto;min-width:0}
+.pickfoot button{flex:none;white-space:nowrap}
 .hex{font:inherit;font-size:13px;font-weight:600;width:92px;border:1px solid #999;padding:7px 8px;text-transform:lowercase;border-radius:0}
 .swatches{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
 .sw{width:22px;height:22px;border:1px solid #000;cursor:pointer;padding:0;box-shadow:none}
@@ -158,7 +178,7 @@ input[type=range]{flex:1;accent-color:#000;min-width:120px}
 .view canvas{display:block;max-width:100%;max-height:calc(100vh - 212px);image-rendering:pixelated;image-rendering:crisp-edges}
 .view.zoom canvas{max-width:none;max-height:none}
 .empty{width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;color:#666}
-.empty .bigcross{font-family:var(--sans);font-weight:400;font-size:84px;line-height:1;color:#111;display:block;margin-bottom:10px}
+.empty .bigcross{font-family:var(--black);font-size:90px;line-height:1;color:#000;display:block;margin-bottom:6px}
 .meta{display:flex;justify-content:space-between;gap:10px;margin-top:10px;font-size:12px;color:var(--grey);flex-wrap:wrap}
 
 /* 비주얼 크레딧 박스 */
@@ -245,7 +265,7 @@ button.primary,.segm button[aria-pressed=true]{color:#fff}
         </div>
         <div class="row">
           <div class="colorbox">
-            <div class="cpick" id="baseChip"><input type="color" id="base" value="#f3efe6" aria-label="밑색" /></div>
+            <button type="button" class="cpick" id="baseChip" data-for="base" aria-label="밑색 고르기" aria-expanded="false"><input type="color" id="base" value="#f3efe6" tabindex="-1" aria-hidden="true" /></button>
             <input class="hex" id="baseHex" value="#f3efe6" aria-label="밑색 hex" spellcheck="false" />
           </div>
           <label class="check"><input type="checkbox" id="baseOn" checked />밑색 사용</label>
@@ -271,7 +291,7 @@ button.primary,.segm button[aria-pressed=true]{color:#fff}
         </div>
         <div class="row">
           <div class="colorbox">
-            <div class="cpick" id="inkChip"><input type="color" id="ink" value="#ff3b6b" aria-label="잉크 색" /></div>
+            <button type="button" class="cpick" id="inkChip" data-for="ink" aria-label="잉크 색 고르기" aria-expanded="false"><input type="color" id="ink" value="#ff3b6b" tabindex="-1" aria-hidden="true" /></button>
             <input class="hex" id="inkHex" value="#ff3b6b" aria-label="잉크 hex" spellcheck="false" />
           </div>
         </div>
@@ -325,7 +345,7 @@ button.primary,.segm button[aria-pressed=true]{color:#fff}
           </div>
         </div>
         <div class="view" id="view">
-          <div class="empty" id="empty"><span class="bigcross">†</span>비트맵을 제단에 올려주세요</div>
+          <div class="empty" id="empty"><span class="bigcross">✠</span>비트맵을 제단에 올려주세요</div>
           <canvas id="out" hidden></canvas>
         </div>
         <div class="meta"><span id="metaL">—</span><span id="metaR">bitmap.exe</span></div>
@@ -343,6 +363,12 @@ button.primary,.segm button[aria-pressed=true]{color:#fff}
     <span>runs in your browser</span><br>
     <span>all ages</span>
   </footer>
+</div>
+
+<div class="picker" id="picker" hidden role="dialog" aria-label="색상 선택">
+  <div class="sv" id="sv"><div class="knob" id="svK"></div></div>
+  <div class="hue" id="hue"><div class="knob" id="hueK"></div></div>
+  <div class="pickfoot"><div class="prev" id="pPrev"></div><input class="hex" id="pHex" spellcheck="false" aria-label="hex" /><button type="button" class="primary" id="pDone">완료</button></div>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -557,6 +583,65 @@ button.primary,.segm button[aria-pressed=true]{color:#fff}
 
   let tt;
   function toast(m){ const t = $("toast"); t.textContent = m; t.classList.add("on"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("on"), 2000); }
+
+  /* ---------- 색상 선택기 (HSV) ---------- */
+  const pk = {el:$("picker"), target:null, chip:null, h:0, s:1, v:1};
+  const hex2hsv = hex => {
+    const n = parseInt(hex.slice(1),16), r=(n>>16&255)/255, g=(n>>8&255)/255, b=(n&255)/255;
+    const mx=Math.max(r,g,b), mn=Math.min(r,g,b), d=mx-mn; let h=0;
+    if (d){ h = mx===r ? ((g-b)/d)%6 : mx===g ? (b-r)/d+2 : (r-g)/d+4; h*=60; if(h<0)h+=360; }
+    return [h, mx ? d/mx : 0, mx];
+  };
+  const hsv2hex = (h,s,v) => {
+    const f = k => { const x=(k+h/60)%6; return v - v*s*Math.max(0,Math.min(x,4-x,1)); };
+    return "#"+[f(5),f(3),f(1)].map(c=>Math.round(c*255).toString(16).padStart(2,"0")).join("");
+  };
+  function pkDraw(){
+    $("sv").style.setProperty("--hue", `hsl(${pk.h} 100% 50%)`);
+    $("svK").style.left = pk.s*100+"%"; $("svK").style.top = (1-pk.v)*100+"%";
+    $("hueK").style.left = pk.h/360*100+"%";
+  }
+  function pkApply(){
+    const hex = hsv2hex(pk.h,pk.s,pk.v);
+    $("pPrev").style.background = hex; $("pHex").value = hex;
+    const t = $(pk.target); t.value = hex; t.dispatchEvent(new Event("input"));
+    pkDraw();
+  }
+  function pkOpen(chip){
+    if (pk.chip === chip && !pk.el.hidden) return pkClose();
+    pkClose();
+    pk.chip = chip; pk.target = chip.dataset.for;
+    [pk.h,pk.s,pk.v] = hex2hsv($(pk.target).value);
+    $("pHex").value = $(pk.target).value;
+    $("pPrev").style.background = $(pk.target).value;
+    chip.setAttribute("aria-expanded","true");
+    pk.el.hidden = false;
+    const r = chip.getBoundingClientRect(), w = pk.el.offsetWidth;
+    pk.el.style.top = (r.bottom + scrollY + 10) + "px";
+    pk.el.style.left = Math.max(16, Math.min(r.left + scrollX, scrollX + document.documentElement.clientWidth - w - 16)) + "px";
+    pkDraw();
+  }
+  function pkClose(){
+    if (pk.chip) pk.chip.setAttribute("aria-expanded","false");
+    pk.el.hidden = true; pk.chip = null;
+  }
+  function drag(el, fn){
+    const move = e => { const r = el.getBoundingClientRect();
+      fn(Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)), Math.min(1,Math.max(0,(e.clientY-r.top)/r.height))); pkApply(); };
+    el.addEventListener("pointerdown", e => { e.preventDefault(); el.setPointerCapture(e.pointerId); move(e);
+      el.onpointermove = move; el.onpointerup = () => el.onpointermove = null; });
+  }
+  drag($("sv"), (x,y) => { pk.s = x; pk.v = 1-y; });
+  drag($("hue"), x => { pk.h = Math.min(359.9, x*360); });
+  $("pHex").addEventListener("input", () => {
+    let v = $("pHex").value.trim(); if (!v.startsWith("#")) v = "#"+v;
+    if (/^#[0-9a-f]{3}$/i.test(v)) v = "#"+[...v.slice(1)].map(c=>c+c).join("");
+    if (/^#[0-9a-f]{6}$/i.test(v)){ [pk.h,pk.s,pk.v] = hex2hsv(v.toLowerCase()); pkApply(); }
+  });
+  $("pDone").onclick = pkClose;
+  document.querySelectorAll(".cpick").forEach(c => c.addEventListener("click", () => pkOpen(c)));
+  document.addEventListener("pointerdown", e => { if (!pk.el.hidden && !pk.el.contains(e.target) && !e.target.closest(".cpick")) pkClose(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") pkClose(); });
 
   syncSw(); updateLabels();
 })();
