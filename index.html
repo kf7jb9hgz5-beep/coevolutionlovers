@@ -64,11 +64,7 @@ header{display:flex;justify-content:space-between;align-items:flex-start;gap:20p
 
 /* ---------- 패널 (채식필사본 이니셜 박스) ---------- */
 .panel{position:relative;background:#fff;border:1px solid #cfcfcf;padding:16px 16px 18px;margin-bottom:22px;box-shadow:0 0 0 4px var(--paper),0 0 0 5px #e3e3e3}
-.panel:nth-child(2){margin-left:34px}
-.panel:nth-child(3){margin-left:12px}
-.panel:nth-child(4){margin-left:44px}
-@media (max-width:880px){.panel:nth-child(n){margin-left:0}}
-.ptitle{display:flex;align-items:flex-end;gap:6px;margin:-4px 0 14px}
+.ptitle{display:flex;align-items:center;gap:12px;margin:0 0 16px}
 .initial{
   flex:none;width:68px;height:76px;display:grid;place-items:center;position:relative;
   font-family:var(--black);font-size:66px;line-height:1;color:var(--ink);
@@ -79,11 +75,11 @@ header{display:flex;justify-content:space-between;align-items:flex-start;gap:20p
   margin:4px 4px 4px 4px;
 }
 .initial::before{content:"";position:absolute;inset:5px;background:#fff;border:1px dashed #9a9a9a;z-index:0}
-.initial span{position:relative;z-index:1;transform:translateY(4px);text-shadow:2px 2px 0 #fff,-1px -1px 0 #fff}
-.initial i{position:absolute;z-index:1;font-style:normal;font-size:11px;color:#555;line-height:1}
+.initial span{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:48px;line-height:1;padding-top:6px;text-shadow:2px 2px 0 #fff,-1px -1px 0 #fff}
+.initial i{position:absolute;z-index:2;font-style:normal;font-family:var(--sans);font-size:11px;color:#555;line-height:1}
 .initial i:nth-of-type(1){top:7px;left:8px}
 .initial i:nth-of-type(2){bottom:7px;right:8px}
-.word{font-family:var(--cond);font-size:38px;line-height:.9;letter-spacing:0}
+.word{font-family:var(--cond);font-size:34px;line-height:1;letter-spacing:0;min-width:0}
 .word small{display:block;font-family:var(--sans);font-size:12px;letter-spacing:-.01em;color:var(--grey);margin-top:6px;font-weight:500}
 
 /* ---------- 컨트롤 ---------- */
@@ -105,15 +101,15 @@ header{display:flex;justify-content:space-between;align-items:flex-start;gap:20p
 button,.btn{
   font:inherit;font-weight:700;font-size:13px;letter-spacing:-.02em;cursor:pointer;
   background:#fff;color:var(--ink);border:1px solid var(--ink);padding:7px 12px;border-radius:0;
-  box-shadow:2px 2px 0 var(--ink);transition:transform .08s,box-shadow .08s
+  color:#444;border-color:#999;transition:background-color .12s,color .12s,border-color .12s
 }
-button:hover{background:#f4f4f1}
-button:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}
-button.primary{background:var(--ink);color:#fff}
-button.primary:hover{background:#333}
+button:hover{border-color:#111;color:#111}
+button:active{background:#111;color:#fff}
+button.primary{background:#111;color:#fff;border-color:#111}
+button.primary:hover{background:#444;color:#fff}
 button:disabled{opacity:.35;cursor:not-allowed}
 
-select{font:inherit;font-size:13px;font-weight:600;border:1px solid var(--ink);background:#fff;padding:6px 26px 6px 8px;border-radius:0;appearance:none;
+select{font:inherit;font-size:13px;font-weight:600;border:1px solid #999;background:#fff;padding:6px 26px 6px 8px;border-radius:0;appearance:none;
   background-image:linear-gradient(45deg,transparent 50%,#000 50%),linear-gradient(135deg,#000 50%,transparent 50%);
   background-position:calc(100% - 13px) 50%,calc(100% - 8px) 50%;background-size:5px 5px;background-repeat:no-repeat;flex:1;min-width:140px}
 
@@ -122,13 +118,13 @@ input[type=range]{flex:1;accent-color:#000;min-width:120px}
 
 .check{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;cursor:pointer;user-select:none}
 .check input{appearance:none;width:15px;height:15px;border:1px solid #000;margin:0;background:#fff;display:grid;place-items:center;cursor:pointer}
-.check input:checked{background:radial-gradient(circle,#000 0 .8px,transparent 1.1px) 0 0/3px 3px,#fff}
-.check input:checked::after{content:"✝";font-size:12px;line-height:1;font-weight:700;background:#fff;padding:0 1px}
+.check input:checked{background:#111}
+.check input:checked::after{content:"†";font-family:var(--sans);font-size:12px;line-height:1;font-weight:700;color:#fff}
 
 .colorbox{display:flex;align-items:center;gap:8px;flex:1}
-.cpick{position:relative;width:46px;height:34px;border:1px solid #000;flex:none;box-shadow:2px 2px 0 #000}
+.cpick{position:relative;width:46px;height:34px;border:1px solid #999;flex:none}
 .cpick input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
-.hex{font:inherit;font-size:13px;font-weight:600;width:92px;border:1px solid #000;padding:7px 8px;text-transform:lowercase;border-radius:0}
+.hex{font:inherit;font-size:13px;font-weight:600;width:92px;border:1px solid #999;padding:7px 8px;text-transform:lowercase;border-radius:0}
 .swatches{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
 .sw{width:22px;height:22px;border:1px solid #000;cursor:pointer;padding:0;box-shadow:none}
 .sw:active{transform:none}
@@ -136,7 +132,7 @@ input[type=range]{flex:1;accent-color:#000;min-width:120px}
 
 .recipes{display:flex;flex-wrap:wrap;gap:6px}
 .recipes button{font-size:12px;padding:5px 9px;box-shadow:none;font-weight:600}
-.recipes button:hover{background:#000;color:#fff}
+.recipes button:hover{background:#111;color:#fff;border-color:#111}
 
 .segm{display:inline-flex;border:1px solid #000}
 .segm button{box-shadow:none;border:0;border-right:1px solid #000;padding:6px 11px}
@@ -161,14 +157,14 @@ input[type=range]{flex:1;accent-color:#000;min-width:120px}
 .view.zoom{place-items:start}
 .view canvas{display:block;max-width:100%;max-height:calc(100vh - 212px);image-rendering:pixelated;image-rendering:crisp-edges}
 .view.zoom canvas{max-width:none;max-height:none}
-.empty{text-align:center;padding:40px 20px;color:#666}
-.empty .bigcross{font-family:var(--black);font-size:90px;line-height:1;color:#000;display:block;margin-bottom:6px}
+.empty{width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;color:#666}
+.empty .bigcross{font-family:var(--sans);font-weight:400;font-size:84px;line-height:1;color:#111;display:block;margin-bottom:10px}
 .meta{display:flex;justify-content:space-between;gap:10px;margin-top:10px;font-size:12px;color:var(--grey);flex-wrap:wrap}
 
 /* 비주얼 크레딧 박스 */
-.credits{position:absolute;right:-12px;bottom:-34px;background:#fff;border:1px solid #e0e0e0;padding:10px 14px;text-align:right;font-weight:700;font-size:13px;line-height:1.25;box-shadow:0 0 0 4px var(--paper)}
+.credits{margin:12px 0 0 auto;width:max-content;background:#fff;border:1px solid #e0e0e0;padding:10px 14px;text-align:right;font-weight:700;font-size:13px;line-height:1.25}
 .credits span{display:block;font-weight:500;color:#444}
-@media (max-width:880px){.credits{position:static;margin-top:16px}.altar{position:static;order:-1}}
+@media (max-width:880px){.altar{position:static;order:-1}.credits{display:none}.view{min-height:260px}}
 
 /* ---------- 푸터 ---------- */
 footer{margin-top:70px;font-size:22px;font-weight:500;line-height:1.18;letter-spacing:-.045em;max-width:420px}
@@ -178,6 +174,8 @@ footer span{background:var(--paper);padding:0 3px;display:inline-block}
 
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);opacity:0;background:#000;color:#fff;padding:9px 14px;font-weight:700;font-size:13px;transition:.2s;z-index:60;pointer-events:none}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+button,select,input{color:#555;-webkit-text-fill-color:currentColor}
+button.primary,.segm button[aria-pressed=true]{color:#fff}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
 </head>
@@ -219,7 +217,7 @@ footer span{background:var(--paper);padding:0 3px;display:inline-block}
       <!-- L : Load -->
       <section class="panel" aria-labelledby="t-load">
         <div class="ptitle">
-          <div class="initial" aria-hidden="true"><i>✝</i><i>✝</i><span>L</span></div>
+          <div class="initial" aria-hidden="true"><i>†</i><i>†</i><span>L</span></div>
           <div class="word" id="t-load">oad<small>투명 비트맵 올리기</small></div>
         </div>
         <div class="drop" id="drop" tabindex="0" role="button" aria-label="이미지 파일 선택">
@@ -242,7 +240,7 @@ footer span{background:var(--paper);padding:0 3px;display:inline-block}
       <!-- B : Base -->
       <section class="panel" aria-labelledby="t-base">
         <div class="ptitle">
-          <div class="initial" aria-hidden="true"><i>✝</i><i>✝</i><span>B</span></div>
+          <div class="initial" aria-hidden="true"><i>†</i><i>†</i><span>B</span></div>
           <div class="word" id="t-base">ase<small>밑색 깔기</small></div>
         </div>
         <div class="row">
@@ -268,7 +266,7 @@ footer span{background:var(--paper);padding:0 3px;display:inline-block}
       <!-- I : Ink -->
       <section class="panel" aria-labelledby="t-ink">
         <div class="ptitle">
-          <div class="initial" aria-hidden="true"><i>✝</i><i>✝</i><span>I</span></div>
+          <div class="initial" aria-hidden="true"><i>†</i><i>†</i><span>I</span></div>
           <div class="word" id="t-ink">nk<small>검은 네모 바꿀 색</small></div>
         </div>
         <div class="row">
@@ -297,7 +295,7 @@ footer span{background:var(--paper);padding:0 3px;display:inline-block}
       <!-- S : Save -->
       <section class="panel" aria-labelledby="t-save">
         <div class="ptitle">
-          <div class="initial" aria-hidden="true"><i>✝</i><i>✝</i><span>S</span></div>
+          <div class="initial" aria-hidden="true"><i>†</i><i>†</i><span>S</span></div>
           <div class="word" id="t-save">ave<small>png로 내보내기</small></div>
         </div>
         <div class="row">
@@ -327,7 +325,7 @@ footer span{background:var(--paper);padding:0 3px;display:inline-block}
           </div>
         </div>
         <div class="view" id="view">
-          <div class="empty" id="empty"><span class="bigcross">✠</span>비트맵을 제단에 올려주세요</div>
+          <div class="empty" id="empty"><span class="bigcross">†</span>비트맵을 제단에 올려주세요</div>
           <canvas id="out" hidden></canvas>
         </div>
         <div class="meta"><span id="metaL">—</span><span id="metaR">bitmap.exe</span></div>
@@ -362,7 +360,7 @@ footer span{background:var(--paper);padding:0 3px;display:inline-block}
   const RECIPES = [
     {n:"screen 기본", bm:"source-over", ink:"screen", clip:true, inv:false},
     {n:"overlay 그림자", bm:"overlay", ink:"source-over", clip:true, inv:false, inkOp:0},
-    {n:"반전 + color", bm:"source-over", ink:"color", clip:true, inv:false},
+    {n:"color 색상", bm:"source-over", ink:"color", clip:true, inv:false},
     {n:"반전 + multiply", bm:"source-over", ink:"multiply", clip:true, inv:true},
     {n:"전체 screen", bm:"source-over", ink:"screen", clip:false, inv:false},
     {n:"difference", bm:"source-over", ink:"difference", clip:true, inv:false},
@@ -547,7 +545,7 @@ footer span{background:var(--paper);padding:0 3px;display:inline-block}
       a.href = URL.createObjectURL(b);
       a.download = `${st.name}-${$("inkMode").value.replace("source-over","normal")}-${$("ink").value.slice(1)}.png`;
       a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-      toast("저장했어요 ✝");
+      toast("저장했어요 †");
     }, "image/png");
   };
   $("copy").onclick = () => {
